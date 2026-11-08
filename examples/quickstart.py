@@ -85,6 +85,11 @@ def main() -> int:
     if not admission.admitted:
         return 1
 
+    nop = gates.run_nop_check(real_grader)
+    print(f"nop empty-submission check: passed={nop.passed} reward={nop.reward} error={nop.error}")
+    if not nop.passed:
+        return 1
+
     history = [
         loop.IterationRecord(iteration=1, all_verdicts_pass=True, eval_complete=True, selection_reward=0.82),
         loop.IterationRecord(iteration=2, all_verdicts_pass=False, eval_complete=True, selection_reward=0.40),

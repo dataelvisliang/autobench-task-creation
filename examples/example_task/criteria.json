@@ -1,0 +1,1 @@
+[{"description":"The printed value equals the sum of all integers in the input file.","id":"correct_sum","kind":"binary","weight":0.8},{"description":"The output is a single integer and nothing else.","id":"output_shape","kind":"binary","weight":0.2}]

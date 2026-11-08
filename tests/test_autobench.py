@@ -130,6 +130,41 @@ def test_run_admission_grader_error_blocks():
     assert "verifier error" in (result.error or "")
 
 
+def test_nop_check_empty_scores_zero_passes():
+    result = gates.run_nop_check(lambda _path: 0.0)
+    assert result.passed
+    assert result.reward == 0.0
+
+
+def test_nop_check_grades_a_truly_empty_file():
+    def strict_grader(path):
+        assert Path(path).read_text(encoding="utf-8") == ""
+        return 0.0
+
+    assert gates.run_nop_check(strict_grader).passed
+
+
+def test_nop_check_leaking_grader_fails():
+    result = gates.run_nop_check(lambda _path: 0.5)
+    assert not result.passed
+    assert "doing nothing" in (result.error or "")
+
+
+def test_nop_check_grader_error_fails():
+    def bad_grader(_path):
+        raise RuntimeError("boom")
+
+    result = gates.run_nop_check(bad_grader)
+    assert not result.passed
+    assert "grader error on empty submission" in (result.error or "")
+
+
+def test_nop_check_no_reward_fails():
+    result = gates.check_nop_reward(None, None)
+    assert not result.passed
+    assert "no reward produced" in (result.error or "")
+
+
 # ---------- integrity ----------
 
 

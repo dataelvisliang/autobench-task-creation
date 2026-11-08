@@ -9,12 +9,18 @@ solution is graded by the real grader. Admission requires no grader
 error and a reward of at least 0.9.
 
 Gate 2 (revision integrity) lives in integrity.py.
+
+NOP check (scaffold-only, not in the paper): an empty submission is
+graded by the real grader and must score 0. A non-zero reward means
+the grader awards points for doing nothing, so the task fails even
+though it passed the three paper gates.
 """
 
 from __future__ import annotations
 
 import os
 import stat
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -129,3 +135,57 @@ def run_admission(grader, solution_path: str | Path) -> AdmissionResult:
     except Exception as exc:  # a verifier error blocks admission by design
         return AdmissionResult(admitted=False, reward=None, error=f"verifier error: {exc}")
     return admit_reference(reward, None)
+
+
+# An empty submission must earn nothing. The paper does not use a NOP
+# check (full-text search of arXiv:2610.38882 finds "NOP" zero times),
+# so this is a scaffold-only addition, not a paper gate.
+NOP_REWARD_LIMIT = 0.0
+
+
+@dataclass
+class NopResult:
+    passed: bool
+    reward: float | None
+    error: str | None
+
+
+def check_nop_reward(reward: float | None, error: str | None) -> NopResult:
+    """Decide the NOP check from a finished empty-submission grading run."""
+    if error is not None:
+        return NopResult(passed=False, reward=reward, error=error)
+    if reward is None:
+        return NopResult(passed=False, reward=None, error="no reward produced")
+    if reward > NOP_REWARD_LIMIT:
+        return NopResult(
+            passed=False,
+            reward=reward,
+            error=(
+                f"empty submission scored {reward}, expected "
+                f"{NOP_REWARD_LIMIT}: grader awards points for doing nothing"
+            ),
+        )
+    return NopResult(passed=True, reward=reward, error=None)
+
+
+def run_nop_check(grader) -> NopResult:
+    """Grade an empty submission with the real grader and apply the rule.
+
+    grader(path) must return a float reward in [0, 1] for the file at
+    path. The empty file is written to a temporary directory so the
+    check never touches a real task package. A grader error on the empty
+    submission fails the check: the grader must handle doing nothing
+    without crashing, as well as without awarding points.
+    """
+    with tempfile.TemporaryDirectory(prefix="autobench-nop-") as tmp:
+        empty = Path(tmp) / "empty_submission.py"
+        empty.write_text("", encoding="utf-8")
+        try:
+            reward = grader(empty)
+        except Exception as exc:  # noqa: BLE001 - a grader error fails the check
+            return NopResult(
+                passed=False,
+                reward=None,
+                error=f"grader error on empty submission: {exc}",
+            )
+        return check_nop_reward(reward, None)

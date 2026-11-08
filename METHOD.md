@@ -464,6 +464,14 @@ For comparison, the same paper publishes verbatim prompts for its other
 chapters (Appendix D for HackBench, Appendix F for AutoInteract), so
 these four gaps are specific to the AutoBenchmark chapter.
 
+Scaffold-only addition, not a paper gap: the paper never runs a NOP
+(do-nothing) agent against a task, so a grader that awards points for
+an empty submission would still pass all three paper gates. The
+scaffold adds that check in `gates.py`: grade an empty submission
+with the real grader and require a reward of 0. A non-zero reward
+means the grader leaks points and the task must be repaired before
+it counts.
+
 ## 11. Minimal replication checklist
 
 Distilled from Sections 1 to 10, in execution order:

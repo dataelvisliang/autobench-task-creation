@@ -43,7 +43,10 @@ stubs and one real grader so the loop runs offline with no API keys.
 - `manifest.py`: grounding provenance records and hash-freezing of a
   source tree, with tamper verification
 - `gates.py`: Gate 1 structural validation (protected files byte-identical,
-  package limits) and Gate 3 reference-solution admission (reward >= 0.9)
+  package limits) and Gate 3 reference-solution admission (reward >= 0.9),
+  plus a scaffold-only NOP check: an empty submission graded by the real
+  grader must score 0, or the task fails for leaking points. The paper
+  does not use a NOP check; see METHOD.md Section 10.
 - `integrity.py`: Gate 2 static leak detector, flagging numbers and long
   n-grams that move from feedback into solver-visible files
 - `review.py`: the five review criteria and the fixed verdict format
@@ -54,7 +57,7 @@ Run it:
 
 ```bash
 PYTHONPATH=src python examples/quickstart.py
-PYTHONPATH=src python -m pytest   # 26 tests
+PYTHONPATH=src python -m pytest   # 31 tests
 ```
 
 `examples/example_task/` is a tiny complete task package (sum the integers

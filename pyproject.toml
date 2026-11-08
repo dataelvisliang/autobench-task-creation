@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autobench-scaffold"
+version = "0.1.0"
+description = "A minimal scaffold implementing the AutoBenchmark benchmark-creation recipe (arXiv:2610.38882, Section 1 and Appendix A)"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
